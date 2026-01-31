@@ -1,0 +1,7 @@
+Control Logic: The Lorentz Ejection
+
+The ejection is governed by the Lorentz force (F=q(E+v×B)). The control logic must manage the timing between the UV "Solidification" pulse and the Magnetic "Ejection" pulse.
+
+    Triggering: The UV flash must be synchronized with the peak of the magnetic field. This requires Pulse Forming Networks (PFN) and Spark Gap or Thyratron switching.
+
+    The Maxwell Force Logic: The logic must calculate the "back-EMF" of the plasma piston. As the solid plasma moves down the barrel, it generates its own field; your control system must "chase" the plasma with a traveling magnetic wave (Linear Induction).
