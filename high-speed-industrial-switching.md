@@ -30,6 +30,4 @@ The CAD model for Gundam Robotics Systems must integrate the mechanical and elec
 
 In this system, the UV light acts as the "trigger" for the state change. Gundam Robotics Systems treats the 5-microsecond window as the critical "dwell time" where the air is sufficiently dense to be treated as a solid piston.
 
--   **Plasma Confinement:** The control logic ensures that the Maxwell force is applied exactly when the UV amplitude is at its peak, using the 5-microsecond standard as the synchronization pulse for the entire "Future Gun System" rig.
-
-**Does Gundam Robotics Systems have a preferred peak current (kilo-amperes) for the initial ejection pulse, or should the winding specifications be calculated based on the maximum allowable heat dissipation of the fan system?**
+-   **Plasma Confinement:** The control logic ensures that the Maxwell force is applied exactly when the UV amplitude is at its peak, using the 5-microsecond standard as the synchronization pulse for the entire "Future Gun System" rig
