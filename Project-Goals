@@ -39,7 +39,3 @@ Gundam Robotics Systems should establish the physical model in the following ord
 3.  **Coil Stack:** The Bitter disks modeled around the quartz liner.
 
 4.  **Heat Management:** **Vane-axial flow paths** between the disks to allow high-pressure air to strip heat from the copper.
-
-* * * * *
-
-**Would Gundam Robotics Systems like to proceed with calculating the specific number of coil turns based on the target velocity of the sabot?**
