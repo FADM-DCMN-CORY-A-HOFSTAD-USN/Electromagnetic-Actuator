@@ -1,0 +1,59 @@
+architecture Behavioral of GRS_PulseController is\
+    -- Timing Constants (Ticks = Time / 20ns)\
+    constant UV_START_TICKS : integer := 0;      -- T+0us\
+    constant MAG_START_TICKS : integer := 50;    -- T+1us (50 * 20ns)\
+    constant END_PULSE_TICKS : integer := 250;   -- T+5us (250 * 20ns)\
+    constant COOLDOWN_TICKS  : integer := 50000; -- Extra time for fans
+
+    type state_type is (IDLE, PULSING, COOLDOWN);\
+    signal state   : state_type := IDLE;\
+    signal counter : integer range 0 to 60000 := 0;
+
+begin\
+    process(clk, reset)\
+    begin\
+        if reset = '1' then\
+            state <= IDLE;\
+            uv_gate <= '0';\
+            magnetic_gate <= '0';\
+            cooling_fan <= '0';\
+        elsif rising_edge(clk) then\
+            case state is\
+                when IDLE =>\
+                    counter <= 0;\
+                    if trigger = '1' then\
+                        state <= PULSING;\
+                    end if;
+
+                when PULSING =>\
+                    counter <= counter + 1;\
+                    cooling_fan <= '1'; -- Engage fans immediately
+
+                    -- UV Solidification (T+0 to T+5us)\
+                    if counter >= UV_START_TICKS and counter < END_PULSE_TICKS then\
+                        uv_gate <= '1';\
+                    else\
+                        uv_gate <= '0';\
+                    end if;
+
+                    -- Maxwell Force Ejection (T+1 to T+5us)\
+                    if counter >= MAG_START_TICKS and counter < END_PULSE_TICKS then\
+                        magnetic_gate <= '1';\
+                    else\
+                        magnetic_gate <= '0';\
+                    end if;
+
+                    if counter >= END_PULSE_TICKS then\
+                        state <= COOLDOWN;\
+                    end if;
+
+                when COOLDOWN =>\
+                    counter <= counter + 1;\
+                    if counter >= COOLDOWN_TICKS then\
+                        cooling_fan <= '0';\
+                        state <= IDLE;\
+                    end if;\
+            end case;\
+        end if;\
+    end process;\
+end Behavioral;
