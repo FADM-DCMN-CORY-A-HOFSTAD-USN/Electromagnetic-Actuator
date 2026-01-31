@@ -52,7 +52,3 @@ The CAD model for Gundam Robotics Systems will prioritize the standardized -12 f
 
 * 
 **Thermal Regulation**: Integrated fan-driven cooling paths will be modeled to strip heat from the coils. The 48V architecture is well-suited for powering these industrial-grade cooling fans alongside the primary actuator electronics.
-
-
-
-**Would Gundam Robotics Systems like me to generate a specific coil winding schedule (number of turns and wire gauge) optimized for the 5A/48V power profile?**
