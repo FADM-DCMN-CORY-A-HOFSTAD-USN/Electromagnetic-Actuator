@@ -1,0 +1,105 @@
+﻿Gundam Robotics Systems will implement the 5-microsecond pulse synchronization using VHDL. This code is designed for high-precision timing, ensuring the High-Amplitude UV Flash initiates the "solid plasma" transition exactly 1 microsecond before the Maxwell-force Bitter Stack is energized.
+The following snippet is optimized for a 50MHz onboard clock (20ns period), providing the nanosecond-level resolution required for the Future Gun System.
+1. VHDL Pulse Controller Entity
+This module handles the 48V/5A power sequence, managing the high-speed SiC MOSFET and IGBT gate drivers.
+
+
+VHDL
+
+
+
+
+-- Gundam Robotics Systems: 5-Microsecond Pulse Synchronizer
+-- Targets: -12 Dash Size Electromagnetic Actuator Prototype
+-- Logic: 50MHz Clock (1 tick = 20ns)
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+entity GRS_PulseController is
+   Port (
+       clk           : in  STD_LOGIC;  -- 50MHz Input
+       reset         : in  STD_LOGIC;  -- Active High
+       trigger       : in  STD_LOGIC;  -- Launch Command
+       uv_gate       : out STD_LOGIC;  -- To UV SiC MOSFET
+       magnetic_gate : out STD_LOGIC;  -- To Bitter-Stack IGBT
+       cooling_fan   : out STD_LOGIC   -- To 48V Fan Controller
+   );
+end GRS_PulseController;
+
+________________
+2. Behavioral Architecture (The 5µs Sequence)
+The logic uses a state machine to ensure the "Solidification" phase occurs before the "Ejection" phase.
+
+
+VHDL
+
+
+
+
+architecture Behavioral of GRS_PulseController is
+   -- Timing Constants (Ticks = Time / 20ns)
+   constant UV_START_TICKS : integer := 0;      -- T+0us
+   constant MAG_START_TICKS : integer := 50;    -- T+1us (50 * 20ns)
+   constant END_PULSE_TICKS : integer := 250;   -- T+5us (250 * 20ns)
+   constant COOLDOWN_TICKS  : integer := 50000; -- Extra time for fans
+
+   type state_type is (IDLE, PULSING, COOLDOWN);
+   signal state   : state_type := IDLE;
+   signal counter : integer range 0 to 60000 := 0;
+
+begin
+   process(clk, reset)
+   begin
+       if reset = '1' then
+           state <= IDLE;
+           uv_gate <= '0';
+           magnetic_gate <= '0';
+           cooling_fan <= '0';
+       elsif rising_edge(clk) then
+           case state is
+               when IDLE =>
+                   counter <= 0;
+                   if trigger = '1' then
+                       state <= PULSING;
+                   end if;
+
+               when PULSING =>
+                   counter <= counter + 1;
+                   cooling_fan <= '1'; -- Engage fans immediately
+                   
+                   -- UV Solidification (T+0 to T+5us)
+                   if counter >= UV_START_TICKS and counter < END_PULSE_TICKS then
+                       uv_gate <= '1';
+                   else
+                       uv_gate <= '0';
+                   end if;
+
+                   -- Maxwell Force Ejection (T+1 to T+5us)
+                   if counter >= MAG_START_TICKS and counter < END_PULSE_TICKS then
+                       magnetic_gate <= '1';
+                   else
+                       magnetic_gate <= '0';
+                   end if;
+
+                   if counter >= END_PULSE_TICKS then
+                       state <= COOLDOWN;
+                   end if;
+
+               when COOLDOWN =>
+                   counter <= counter + 1;
+                   if counter >= COOLDOWN_TICKS then
+                       cooling_fan <= '0';
+                       state <= IDLE;
+                   end if;
+           end case;
+       end if;
+   end process;
+end Behavioral;
+
+________________
+3. Safety and Implementation Notes
+* UV Dwell Time: The 1-microsecond lead time (MAG_START_TICKS) ensures the air inside the Fused Silica chamber has reached peak ionization before the magnetic field peak occurs.
+* Gate Driver Latency: For the physical -12 prototype, Gundam Robotics Systems should calibrate the counter constants to account for the "Turn-on Delay" of Berry-compliant SiC MOSFETs (typically 30-80ns).
+* EMI Shielding: Since the Bitter stack discharges 5A at 48V in a microsecond window, it is vital that the FPGA board is isolated. Use Opto-couplers on the uv_gate and magnetic_gate signals to prevent the Maxwell force from inducing a reset on the clock pins.
